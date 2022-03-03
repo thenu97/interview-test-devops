@@ -1,0 +1,6 @@
+# - import_playbook: begin.yml
+- name: K8 nginx
+  hosts: all
+  roles:
+    - { role: common, tags: [common] }
+    - { role: k8, tags: [k8] }

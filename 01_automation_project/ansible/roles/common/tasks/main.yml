@@ -1,0 +1,20 @@
+- name: Set sysctls
+  sysctl: name={{ item.key }} value={{ item.value }}
+  with_dict:
+      vm.dirty_bytes: 13743895348 # Based off 10% of 128GB RAM
+      vm.dirty_background_bytes: 6871947674 # Based off 5% of 128GB RAM
+      vm.overcommit_memory: 1
+      kernel.panic: 10
+      kernel.panic_on_oops: 1
+
+- name: Add core packages for apt
+  apt:
+    pkg:
+      - apt-transport-https
+      - curl
+      - gnupg-agent
+      - ca-certificates
+      - software-properties-common
+
+- name: Install bash-completion
+  apt: name=bash-completion install_recommends=no

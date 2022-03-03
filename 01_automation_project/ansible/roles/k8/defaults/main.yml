@@ -1,0 +1,4 @@
+master_node_ip: 172.16.0.11
+worker_node_ip: 172.16.0.12
+k8_cidr: 172.16.0.0/16
+node_ip: "{{ master_node_ip if 'master_node' in group_names else worker_node_ip }}"

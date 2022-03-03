@@ -1,0 +1,35 @@
+- name: Check reachable hosts
+  hosts: all
+  tasks:
+    - wait_for_connection: timeout=30 connect_timeout=15
+      register: connection_test
+      ignore_errors: True
+    - group_by: key=unreachable
+      when: connection_test.failed
+  become: False
+  tags:
+    - always
+- name: Remove temp files
+  hosts: all:!unreachable
+  tasks:
+    - shell: rm -rf /var/tmp/ansible-tmp-*
+  become: False
+  tags:
+    - always
+- name: Wait for apt locks and daily apt activities
+  hosts: all:!unreachable
+  tasks:
+    - service_facts:
+    - command: systemctl start {{ item }}
+      loop:
+        - apt-daily
+        - apt-daily-upgrade
+      register: result
+      retries: 1
+      delay: 5
+      until: result.rc == 0
+      when: item + ".service" in ansible_facts.services
+  become: True
+  gather_facts: True
+  tags:
+    - always

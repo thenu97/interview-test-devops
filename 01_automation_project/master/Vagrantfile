@@ -1,0 +1,49 @@
+$private_ip = "172.16.0.11"
+
+$shell = <<SCRIPT
+ifconfig enp0s8 #{$private_ip}
+if ! grep -q worker_node /etc/hosts; then
+    echo '172.16.0.12 worker_node' >>/etc/hosts
+fi
+if ! grep -q master_node /etc/hosts; then
+    echo '172.16.0.11 master_node' >>/etc/hosts
+fi
+
+apt-get update -y
+apt-get install -y python-minimal
+SCRIPT
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu/xenial64"
+
+  # plugin required to control disk: vagrant plugin install vagrant-disksize
+  config.disksize.size = '10GB'
+
+  config.vm.hostname = "master"
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 3000
+  end
+
+  config.vm.network "private_network", ip: $private_ip, auto_config: false
+
+  # You may need to comment out or change some of these if running on your host machine
+  # config.vm.network "forwarded_port", guest: 6443, host: 6443, host_ip: "127.0.0.1"
+  # config.vm.network "forwarded_port", guest: 10248, host: 10248, host_ip: "127.0.0.1"
+
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
+  config.vm.provision "shell", inline: $shell, run: "always"
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = {
+        "master_node" => ["default"],
+    }
+    ansible.become = true
+    ansible.playbook = "../ansible/site.yml"
+    ansible.tags = ENV['VAGRANT_ANSIBLE_TAGS']
+    ansible.skip_tags = ENV['VAGRANT_ANSIBLE_SKIP_TAGS']
+    ansible.verbose = 4
+
+  end
+end

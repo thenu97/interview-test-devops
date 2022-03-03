@@ -1,0 +1,39 @@
+# LOAD BALANCER
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: bink
+spec:
+  selector:
+    app: nginx
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30000
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: bink
+  labels:
+    app: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      hostname: nginx
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80

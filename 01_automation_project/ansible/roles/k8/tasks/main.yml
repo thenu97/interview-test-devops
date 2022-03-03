@@ -1,0 +1,121 @@
+# Install Docker and its dependent components
+- name: Add an apt signing key for Docker
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add apt repository for stable version
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    state: present
+
+- name: Install docker and its dependecies
+  apt:
+    pkg:
+      - docker-ce 
+      - docker-ce-cli 
+      - containerd.io
+    update_cache: yes
+  notify: docker status
+
+- name: copy docker service file to server
+  template: src="../templates/docker.service"  dest="/lib/systemd/system/docker.service"
+
+- name: Restart docker
+  service:
+    name: docker
+    daemon_reload: yes
+    state: restarted
+
+- name: Add vagrant user to docker group
+  user:
+    name: vagrant
+    group: docker
+  
+#kubelet will not start if system has swap enabled
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  with_items:
+    - swap
+    - none
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+# Installing kubelet, kubeadm and kubectl
+- name: Add an apt signing key for Kubernetes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Adding apt repository for Kubernetes
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes.list
+
+- name: Install Kubernetes binaries
+  apt: 
+    pkg:
+      - kubelet 
+      - kubeadm 
+      - kubectl
+    update_cache: yes
+
+- name: Configure node ip
+  lineinfile:
+    path: /etc/default/kubelet
+    line: KUBELET_EXTRA_ARGS=--node-ip="{{ node_ip }}"
+    create: yes
+
+- name: Restart docker
+  service:
+    name: docker
+    daemon_reload: yes
+    state: restarted
+
+- name: Restart kubelet
+  service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+
+- block:
+  - name: Initialize the Kubernetes cluster using kubeadm
+    command: kubeadm init --apiserver-advertise-address="{{ master_node_ip }}" --apiserver-cert-extra-sans="{{ master_node_ip }}"  --node-name master --pod-network-cidr="{{ k8_cidr }}"
+    ignore_errors: True
+  - name: Setup kubeconfig for vagrant user
+    command: "{{ item }}"
+    with_items:
+      - mkdir -p /home/vagrant/.kube
+      - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+      - chown vagrant:vagrant /home/vagrant/.kube/config
+  - name: Generate join command
+    command: kubeadm token create --print-join-command
+    register: join_command
+  - name: Copy join command to local file
+    local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+    become: False
+    notify: docker status
+  - name: create bink namespace
+    command: kubectl create namespace bink
+    become: False
+    ignore_errors: True
+  - name: Copy the Deployment file
+    copy: src="../templates/nginx.yaml" dest="/home/vagrant/nginx.yml" mode=0777
+  - name: Copy the shell script for applu
+    copy: src="../templates/kube.sh" dest="/home/vagrant/kube.sh" mode=0777
+  when: ('master_node' in group_names)
+
+- block:
+  - name: cp join command
+    copy: src=join-command dest=/tmp/join-command.sh mode=0777
+  - name: Join the node to cluster
+    command: sh /tmp/join-command.sh
+    ignore_errors: True
+  when: ('worker_node' in group_names)
+
