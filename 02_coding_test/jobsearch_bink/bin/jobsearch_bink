@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+
+import jobsearch_bink.jobsearch_bink
+
+jobsearch_bink.jobsearch_bink.run()
