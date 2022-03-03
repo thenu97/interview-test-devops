@@ -58,7 +58,7 @@ def find_new_jobs(username, password, chromedriver, filepath):
             job_ids.append(job_id)
 
         except Exception:
-            pass
+            continue
 
     with open(filepath, 'a+') as f:
         for id in job_ids:
