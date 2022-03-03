@@ -1,4 +1,4 @@
-# - import_playbook: begin.yml
+- import_playbook: begin.yml
 - name: K8 nginx
   hosts: all
   roles:
