@@ -32,33 +32,33 @@ def find_new_jobs(username, password, chromedriver, filepath):
 
     print(search_results_count)
 
-    i = 2
+    # i = 2
     job_ids = []
-    while i <= int(search_results_count/25)+1:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        i = i + 1
+    # while i <= int(search_results_count/25)+1:
+    #     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    #     i = i + 1
+    #     try:
+    #         driver.find_element_by_xpath('/html/body/main/div/section/button').click()
+    #         time.sleep(5)
+    #     except:
+    #         pass
+    #         time.sleep(5)
+
+    job_lists = driver.find_element_by_class_name(
+        'jobs-search-results__list.list-style-none')
+
+    jobs = job_lists.find_elements_by_tag_name('li')
+
+    job_ids = []
+
+    for job in jobs:
         try:
-            driver.find_element_by_xpath('/html/body/main/div/section/button').click()
-            time.sleep(5)
-        except:
+            job_id = job.get_attribute(
+                'data-occludable-entity-urn').split(':')[3]
+            job_ids.append(job_id)
+
+        except Exception:
             pass
-            time.sleep(5)
-
-        job_lists = driver.find_element_by_class_name(
-            'jobs-search-results__list.list-style-none')
-
-        jobs = job_lists.find_elements_by_tag_name('li')
-
-        job_ids = []
-
-        for job in jobs:
-            try:
-                job_id = job.get_attribute(
-                    'data-occludable-entity-urn').split(':')[3]
-                job_ids.append(job_id)
-
-            except Exception:
-                pass
 
     with open(filepath, 'a+') as f:
         for id in job_ids:
