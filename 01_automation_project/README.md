@@ -18,8 +18,9 @@ My solution was to create a kubernetes cluster of 1 master and 1 worker, having 
 
 ## Setup
 + clone this repo `git clone https://github.com/thenu97/interview-test-devops.git`
++ cd into `interview-test-devops`
 + navigate to dev branch `git checkout dev`
-+ cd into the master directory e.g: `cd ~/interview-test-devops/01_automation_project/master`
++ cd into the master directory e.g: `cd ./01_automation_project/master`
 + run `vagrant up` 
 + wait for deployment to finish
 + cd into worker directory e.g: `cd ~/interview-test-devops/01_automation_project/worker`

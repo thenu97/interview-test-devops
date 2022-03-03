@@ -23,8 +23,9 @@ My solution was to create a python script to check for jobs that I haven't seen 
 
 ## Setup
 + clone this repo `git clone https://github.com/thenu97/interview-test-devops.git`
++ cd into `interview-test-devops`
 + navigate to dev branch `git checkout dev`
-+ cd into jobsearch_bink directory e.g: `cd ./interview-test-devops/02_coding_test/jobsearch_bink`
++ cd into jobsearch_bink directory e.g: `cd ./02_coding_test/jobsearch_bink`
 + run `pip install .` in that directory
 + run `jobsearch_bink -u '<email_address>'  -p '<password>' -cp '<path_to_driver>' -fp '<path_to_file_for_previously_viewed_jobs'`
     * e.g: `jobsearch_bink -u 'bink@outlook.com'  -p 'fake123' -cp '/Users/bink/Downloads/chromedriver.exe' -fp './viewedjobs'`
