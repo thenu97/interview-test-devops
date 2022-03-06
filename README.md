@@ -12,7 +12,7 @@
 
 
 <a name="brief"></a>
-## The Product Brief
+## The Brief
 
 To be able to:
 + Automate installation of web server
