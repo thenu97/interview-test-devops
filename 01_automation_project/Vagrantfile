@@ -1,0 +1,60 @@
+IMAGE_NAME = "ubuntu/xenial64"
+N = 2
+
+$shell = <<SCRIPT
+ifconfig enp0s8 up
+
+apt-get update -y
+apt-get install -y python-minimal
+SCRIPT
+
+Vagrant.configure(2) do |config|
+  config.disksize.size = '10GB'
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+  config.vm.provision "shell", inline: $shell, run: "always"
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 3000
+  end
+  
+  config.vm.define "master" do |master| 
+    master.vm.box = IMAGE_NAME
+    master.vm.network "private_network", ip: "172.16.0.10", virtualbox__intnet: "enp0s8"
+    master.vm.hostname = "master"
+    master.vm.provision "ansible" do |ansible|
+      ansible.groups = {
+          "master_node" => ["master"],
+      }
+      ansible.become = true
+      ansible.playbook = "./ansible/site.yml"
+      ansible.tags = ENV['VAGRANT_ANSIBLE_TAGS']
+      ansible.skip_tags = ENV['VAGRANT_ANSIBLE_SKIP_TAGS']
+      ansible.verbose = 4
+      ansible.extra_vars = {
+        master_ip: "172.16.0.10",
+      }
+    end
+  end
+
+  (1..N).each do |i|
+    config.vm.define "worker-#{i}" do |worker|
+      worker.vm.box = IMAGE_NAME
+      worker.vm.network "private_network", ip: "172.16.0.#{i + 10}", virtualbox__intnet: "enp0s8"
+      worker.vm.hostname = "worker-#{i}"
+      config.vm.network "forwarded_port", guest: 30000, host: "#{i + 30000}"
+      worker.vm.provision "ansible" do |ansible|
+        ansible.groups = {
+            "worker_node" => ["worker-#{i}"],
+        }
+        ansible.become = true
+        ansible.playbook = "./ansible/site.yml"
+        ansible.tags = ENV['VAGRANT_ANSIBLE_TAGS']
+        ansible.skip_tags = ENV['VAGRANT_ANSIBLE_SKIP_TAGS']
+        ansible.verbose = 4
+        ansible.extra_vars = {
+          worker_ip: "172.16.0.#{i + 10}",
+        }  
+      end
+    end
+
+  end
+end

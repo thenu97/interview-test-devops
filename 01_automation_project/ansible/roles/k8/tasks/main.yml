@@ -86,7 +86,7 @@
 
 - block:
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address="{{ master_node_ip }}" --apiserver-cert-extra-sans="{{ master_node_ip }}"  --node-name master --pod-network-cidr="{{ k8_cidr }}"
+    command: kubeadm init --apiserver-advertise-address="{{ master_ip }}" --apiserver-cert-extra-sans="{{ master_ip }}"  --node-name master --pod-network-cidr="{{ k8_cidr }}"
     ignore_errors: True
   - name: Setup kubeconfig for vagrant user
     command: "{{ item }}"

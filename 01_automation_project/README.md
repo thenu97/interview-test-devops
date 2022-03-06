@@ -13,20 +13,22 @@ My solution was to create a kubernetes cluster of 1 master and 1 worker, having 
 
 
 ## Improvements
-+ combine vagrant file to provision both master and worker with one `vagrant up`
++ ~~combine vagrant file to provision both master and worker with one `vagrant up`~~
 + find a way to better automate running `kube.sh`
++ test on cloud platform
 
 ## Setup
 + clone this repo `git clone https://github.com/thenu97/interview-test-devops.git`
 + cd into `interview-test-devops`
 + navigate to dev branch `git checkout dev`
-+ cd into the master directory e.g: `cd ./01_automation_project/master`
-+ run `vagrant up` 
++ ~~cd into the master directory e.g: `cd ./01_automation_project/master`~~
++ run `vagrant up`
 + wait for deployment to finish
-+ cd into worker directory e.g: `cd ~/interview-test-devops/01_automation_project/worker`
-+ run `vagrant up` 
-+ wait for deployment to finish
-+ navigate back into the master directory and run `vagrant ssh`
++ ~~cd into worker directory e.g: `cd ~/interview-test-devops/01_automation_project/worker`~~
++ ~~run `vagrant up`~~
++ ~~wait for deployment to finish~~
++ ~~navigate back into the master directory and run `vagrant ssh`~~
++ run `vagrant ssh master`
 + on the master node, run `./home/vagrant/kube.sh`
 + wait for the pods to start up (check by running `kubectl get pods`)
 + access the nginx webpage on browser at localhost:30000
